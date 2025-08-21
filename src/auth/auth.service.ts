@@ -21,6 +21,7 @@ export class AuthService {
         if (userAlreadyMember) {
             throw new ConflictException("Usuário já existe!");
         };
+
         return this.userService.create(createUserDto);
     };
 
@@ -44,14 +45,6 @@ export class AuthService {
         const hashedRefreshToken = await hash(refreshToken);
         await this.userService.updateHashedRefreshToken(userId, hashedRefreshToken);
 
-
-        console.log({
-            id: userId,
-            name: name,
-            role: role,
-            accessToken,
-            refreshToken,
-        })
         return {
             id: userId,
             name: name,
@@ -71,13 +64,15 @@ export class AuthService {
 
         return {
             accessToken,
-            refreshToken
+            refreshToken,
         };
     };
 
     async validateJwtUser(userId: number) {
         const user = await this.userService.findOne(userId);
-        if (!user) throw new UnauthorizedException("Usuário não encontrado.");
+        if (!user) {
+            throw new UnauthorizedException("Usuário não encontrado.");
+        };
 
         const currentUser = { id: (await user)?.id, role: user.role };
         return currentUser;
@@ -94,7 +89,7 @@ export class AuthService {
         if (!refreshTokenMatched)
             throw new UnauthorizedException("Token de refresh inválido.");
 
-        const currentUser = { id: (await user)?.id };
+        const currentUser = { id: (await user)?.id, name: (await user).name };
         return currentUser;
     };
 
