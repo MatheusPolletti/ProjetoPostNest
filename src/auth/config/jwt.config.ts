@@ -7,5 +7,5 @@ export default registerAs("jwt",
         signOptions: {
             expiresIn: process.env.JWT_EXPIRES_IN
         }
-    })
+    }),
 );
