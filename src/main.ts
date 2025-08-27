@@ -1,3 +1,5 @@
+// nest g resource posts --no-spec
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -8,6 +10,7 @@ async function bootstrap() {
   console.log(PORT);
   console.log(FRONTEND_URL);
 
+  // NestFactory usado para criar api
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({

@@ -4,12 +4,14 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
+import { PostsModule } from './posts/posts.module';
 
 @Module({
   imports: [
     AuthModule,
     UserModule,
-    ConfigModule.forRoot({ isGlobal: true })
+    ConfigModule.forRoot({ isGlobal: true }),
+    PostsModule
   ],
   controllers: [
     AppController
