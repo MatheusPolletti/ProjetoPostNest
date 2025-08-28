@@ -46,6 +46,8 @@ model Posts {
   authorId Int
   autor    User       @relation(fields: [authorId], references: [id])
   title    String
+  likes    Int        @default(0)
+  dislikes Int        @default(0)
   content  String
   comments Comments[]
 }

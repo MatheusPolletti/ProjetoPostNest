@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Delete, Req, Query, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete, Req, Param, ParseIntPipe } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { newPostDto } from './dto/new.post.dto';
 import { updatePostDto } from './dto/update.post.dto';
@@ -20,9 +20,16 @@ export class PostsController {
     return createdPost;
   };
 
-  @Get("posts")
-  async getPosts() {
-    const posts = this.postsService.getPosts();
+  @Get("pages")
+  async getPages() {
+    const quantityPages = this.postsService.getPages();
+
+    return quantityPages;
+  };
+
+  @Get("posts/:currentPage")
+  async getPosts(@Param('currentPage', ParseIntPipe) currentPage: number) {
+    const posts = this.postsService.getPosts(currentPage);
 
     return posts;
   };

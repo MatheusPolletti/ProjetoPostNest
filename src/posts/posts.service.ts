@@ -50,12 +50,24 @@ export class PostsService {
     return isPostCreated;
   };
 
-  async getPosts() {
+  async getPages() {
+    const totalPages = await this.prisma.posts.count();
+    const pages = Math.ceil(totalPages / 24);
+
+    return { 'totalPages': pages };
+  };
+
+  async getPosts(currentPage: number) {
+    const numbersPostsForPage = 24;
+    const postSkips = numbersPostsForPage * currentPage;
+
     const posts = await this.prisma.posts.findMany({
       select: {
         id: true,
         title: true,
         content: true,
+        likes: true,
+        dislikes: true,
         autor: {
           select: {
             id: true,
@@ -64,6 +76,8 @@ export class PostsService {
           },
         },
       },
+      skip: postSkips,
+      take: numbersPostsForPage,
     });
 
     posts.forEach(post => {
@@ -81,6 +95,8 @@ export class PostsService {
         id: true,
         title: true,
         content: true,
+        likes: true,
+        dislikes: true,
         autor: {
           select: {
             id: true,
@@ -142,5 +158,61 @@ export class PostsService {
     });
 
     return deletedPost;
+  };
+
+  async likePost(postId: number) {
+    const likesPost = await this.prisma.posts.update({
+      where: {
+        id: postId,
+      },
+      data: {
+        likes: {
+          increment: 1,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        likes: true,
+        dislikes: true,
+        autor: {
+          select: {
+            name: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    return likesPost;
+  };
+
+  async dislikePost(postId: number) {
+    const dislikedPost = await this.prisma.posts.update({
+      where: {
+        id: postId,
+      },
+      data: {
+        dislikes: {
+          increment: 1
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        likes: true,
+        dislikes: true,
+        autor: {
+          select: {
+            name: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    return dislikedPost;
   };
 };

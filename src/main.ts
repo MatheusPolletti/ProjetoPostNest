@@ -8,7 +8,6 @@ async function bootstrap() {
   const PORT = process.env.PORT ?? 5001;
   const FRONTEND_URL = process.env.FRONTEND_URL;
   console.log(PORT);
-  console.log(FRONTEND_URL);
 
   // NestFactory usado para criar api
   const app = await NestFactory.create(AppModule);
