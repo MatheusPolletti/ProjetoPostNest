@@ -1,4 +1,6 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ReactionType } from '@prisma/client';
+import { posix } from 'path';
 import { PrismaService } from 'prisma/prisma.service';
 
 // Declarar que é um provider
@@ -66,8 +68,7 @@ export class PostsService {
         id: true,
         title: true,
         content: true,
-        likes: true,
-        dislikes: true,
+        reaction: true,
         autor: {
           select: {
             id: true,
@@ -160,59 +161,171 @@ export class PostsService {
     return deletedPost;
   };
 
-  async likePost(postId: number) {
-    const likesPost = await this.prisma.posts.update({
-      where: {
-        id: postId,
-      },
-      data: {
-        likes: {
-          increment: 1,
-        },
-      },
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        likes: true,
-        dislikes: true,
-        autor: {
-          select: {
-            name: true,
-            role: true,
+  async likePost(postId: number, userId: number, reactionType: ReactionType) {
+    try {
+      const existingReaction = await this.prisma.reaction.findUnique({
+        where: {
+          userId_postId: {
+            userId: userId,
+            postId: postId,
           },
         },
-      },
-    });
+      });
 
-    return likesPost;
+      if (existingReaction && existingReaction.type === reactionType) {
+        await this.prisma.reaction.delete({
+          where: {
+            userId_postId: {
+              userId: userId,
+              postId: postId,
+            },
+          },
+        });
+        return;
+      };
+
+      await this.prisma.reaction.upsert({
+        where: {
+          userId_postId: {
+            userId: userId,
+            postId: postId
+          }
+        },
+        update:{
+          type: reactionType === 'LIKE' ? 'LIKE' : 'DISLIKE',
+        },
+        create: {
+          userId: userId,
+          postId: postId,
+          type: reactionType === 'LIKE' ? 'LIKE' : 'DISLIKE',
+        }
+      })
+
+      const likeCount = await this.prisma.reaction.count({
+        where: {
+          postId: postId,
+          type: 'LIKE',
+        },
+      });
+
+      const dislikedCount = await this.prisma.reaction.count({
+        where: {
+          postId: postId,
+          type: 'DISLIKE',
+        },
+      });
+
+      const createdReaction = await this.prisma.posts.update({
+        where: {
+          id: postId,
+        },
+        data: {
+          likes: likeCount,
+          dislikes: dislikedCount,
+        },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          likes: true, 
+          dislikes: true,
+          autor: {
+            select: {
+              name: true,
+              role: true,
+            },
+          },
+        },
+      });
+
+      return { sucess: true, post: createdReaction}
+    }
+    catch (error) {
+      return { sucess: false, message: 'Erro ao interagir com o post.' };
+    };
   };
 
-  async dislikePost(postId: number) {
-    const dislikedPost = await this.prisma.posts.update({
-      where: {
-        id: postId,
-      },
-      data: {
-        dislikes: {
-          increment: 1
-        },
-      },
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        likes: true,
-        dislikes: true,
-        autor: {
-          select: {
-            name: true,
-            role: true,
+  async dislikePost(postId: number, userId: number, reactionType: ReactionType) {
+    try {
+      const existingReaction = await this.prisma.reaction.findUnique({
+        where: {
+          userId_postId: {
+            userId: userId,
+            postId: postId,
           },
         },
-      },
-    });
+      });
 
-    return dislikedPost;
+      if (existingReaction && existingReaction.type === reactionType) {
+        await this.prisma.reaction.delete({
+          where: {
+            userId_postId: {
+              userId: userId,
+              postId: postId,
+            },
+          },
+        });
+        return;
+      };
+
+      await this.prisma.reaction.upsert({
+        where: {
+          userId_postId: {
+            userId: userId,
+            postId: postId
+          }
+        },
+        update:{
+          type: reactionType === 'LIKE' ? 'LIKE' : 'DISLIKE',
+        },
+        create: {
+          userId: userId,
+          postId: postId,
+          type: reactionType === 'LIKE' ? 'LIKE' : 'DISLIKE',
+        }
+      })
+
+      const likeCount = await this.prisma.reaction.count({
+        where: {
+          postId: postId,
+          type: 'LIKE',
+        },
+      });
+
+      const dislikedCount = await this.prisma.reaction.count({
+        where: {
+          postId: postId,
+          type: 'DISLIKE',
+        },
+      });
+
+      const createdReaction = await this.prisma.posts.update({
+        where: {
+          id: postId,
+        },
+        data: {
+          likes: likeCount,
+          dislikes: dislikedCount,
+        },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          likes: true, 
+          dislikes: true,
+          autor: {
+            select: {
+              name: true,
+              role: true,
+            },
+          },
+        },
+      });
+
+      return { sucess: true, post: createdReaction}
+    }
+    catch (error) {
+      return { sucess: false, message: 'Erro ao interagir com o post.' };
+    };
   };
 };

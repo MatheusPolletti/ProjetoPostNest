@@ -8,22 +8,16 @@ datasource db {
 }
 
 model User {
-  id                 Int             @id @default(autoincrement())
+  id                 Int          @id @default(autoincrement())
   name               String
-  email              String          @unique
+  email              String       @unique
   password           String
   hashedRefreshToken String?
-  role               Role            @default(USER)
+  role               Role         @default(USER)
   profileInfo        ProfileInfo?
-  usersToGroups      UsersToGroups[]
   posts              Posts[]
   comments           Comments[]
-}
-
-model Group {
-  id            Int             @id @default(autoincrement())
-  name          String
-  usersToGroups UsersToGroups[]
+  reaction  Reaction[]
 }
 
 model ProfileInfo {
@@ -33,23 +27,31 @@ model ProfileInfo {
   metadata Json
 }
 
-model UsersToGroups {
-  id      Int   @id @default(autoincrement())
-  userid  Int
-  user    User  @relation(fields: [userid], references: [id])
-  groupId Int
-  group   Group @relation(fields: [groupId], references: [id])
+model Posts {
+  id         Int        @id @default(autoincrement())
+  authorId   Int
+  autor      User       @relation(fields: [authorId], references: [id])
+  title      String
+  likes      Int        @default(0)
+  dislikes   Int        @default(0)
+  content    String
+  comments   Comments[]
+  reaction  Reaction[]
 }
 
-model Posts {
-  id       Int        @id @default(autoincrement())
-  authorId Int
-  autor    User       @relation(fields: [authorId], references: [id])
-  title    String
-  likes    Int        @default(0)
-  dislikes Int        @default(0)
-  content  String
-  comments Comments[]
+enum ReactionType {
+  LIKE
+  DISLIKE
+}
+
+model Reaction {
+  userId  Int
+  postId Int
+  type ReactionType
+  user User @relation(fields: [userId], references: [id])
+  post Posts @relation(fields: [postId], references: [id])
+
+  @@id([userId, postId])
 }
 
 model Comments {

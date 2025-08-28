@@ -1,5 +1,6 @@
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { PostsService } from './posts.service';
+import { ReactionType } from "@prisma/client";
 
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
@@ -17,8 +18,8 @@ export class PostsGateway {
     server;
 
     @SubscribeMessage("like")
-    async likePost(@MessageBody() payload: { postId: number }) {
-        const likesPost = await this.postsService.likePost(payload.postId);
+    async likePost(@MessageBody() payload: { postId: number, userId: number, reactionType: ReactionType }) {
+        const likesPost = await this.postsService.likePost(payload.postId, payload.userId, payload.reactionType);
 
         // Para enviar para quem mandou o pedido
         // client.emit
@@ -27,8 +28,8 @@ export class PostsGateway {
     };
 
     @SubscribeMessage("dislike")
-    async dislikePost(@MessageBody() payload: { postId: number }) {
-        const dislikedPost = await this.postsService.dislikePost(payload.postId);
+    async dislikePost(@MessageBody() payload: { postId: number, userId: number, reactionType: ReactionType }) {
+        const dislikedPost = await this.postsService.dislikePost(payload.postId, payload.userId, payload.reactionType);
 
         this.server.emit('dislike', dislikedPost);
     };
